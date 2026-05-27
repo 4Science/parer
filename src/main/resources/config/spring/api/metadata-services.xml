@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--
+        MetadataResolver DSPACE REST — active only with "dspace" profile.
+        To be completed with HTTP client when available.
+    -->
+    <beans>
+        <bean id="it.ivscience.parer.worker.metadata.impl.MetadataResolverDspaceRest"
+              class="it.ivscience.parer.worker.metadata.impl.MetadataResolverDspaceRest">
+            <property name="dspaceBaseUrl"       value="${parer.metadata.dspace-base-url}"/>
+            <property name="apiToken"            value="${parer.metadata.api-token}"/>
+            <property name="access" value="${parer.metadata.access}"/>
+            <property name="sourceSystem"        value="${parer.metadata.source-system}"/>
+            <property name="registryType"        value="${parer.versatore.tipo-registro}"/>
+        </bean>
+    </beans>
+
+</beans>

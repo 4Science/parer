@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="it.ivscience.parer.worker.s3.impl.S3ServiceImpl"
+          class="it.ivscience.parer.worker.s3.impl.S3ServiceImpl"/>
+
+
+</beans>

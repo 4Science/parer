@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--
+        AWS Services — SDK v2 configured via parer.cfg / local.cfg.
+        Credentials/Region resolution chain:
+          1. Environment variables: AWS_REGION, AWS_ENDPOINT_URL, AWS_ACCESS_KEY_ID, ...
+          2. JVM System properties
+          3. Configuration files parer.cfg / local.cfg (highest priority in bean properties)
+    -->
+
+    <!-- Credentials resolved via default chain: AWS_* env vars, ~/.aws/credentials, IAM role -->
+
+    <bean id="s3Client"
+          class="software.amazon.awssdk.services.s3.S3Client"
+          factory-method="create"/>
+
+    <bean id="secretsManagerClient"
+          class="software.amazon.awssdk.services.secretsmanager.SecretsManagerClient"
+          factory-method="create"/>
+
+</beans>

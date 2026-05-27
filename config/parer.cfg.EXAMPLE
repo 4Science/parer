@@ -1,0 +1,208 @@
+# ── Application ───────────────────────────────────────────────────────────────
+dspace.name = parer
+
+# ── Database ─────────────────────────────────────────────
+db.url      =
+db.username =
+db.password =
+db.driver   =
+db.dialect  = org.hibernate.dialect.PostgreSQLDialect
+db.schema   = public
+
+# Connection pool (Commons DBCP2)
+db.maxconnections = 30
+db.maxwait        = 5000
+db.maxidle        = 10
+
+# ── S3 / AssetStore ──────────────────────────────────────
+# Please do not use access key / secret in production:
+# rely on the AWS credentials discovery mechanism (ENV VAR, EC2 IAM role, etc.)
+#
+# Bucket names per environment:
+#   dev:     4s-assetstore-dev--unibo--historica-parer
+#   staging: 4s-assetstore-staging--unibo--historica-parer
+#   prod:    4s-assetstore-prod--unibo--historica-parer
+assetstore.s3.bucketName    = test4science
+assetstore.s3.subfolder     =
+assetstore.s3.awsAccessKey  =
+assetstore.s3.awsSecretKey  =
+assetstore.s3.awsRegionName = eu-west-1
+
+# ── ParER versatore ───────────────────────────────────────────────────────────
+parer.versatore.ambiente      =
+parer.versatore.nome          =
+parer.versatore.ente          =
+parer.versatore.struttura     =
+parer.versatore.userid        =
+parer.versatore.tipo-object   =
+parer.versatore.tipo-registro =
+
+# ── SIP XML ───────────────────────────────────────────────────────────────────
+# Template XML (classpath o path assoluto su filesystem)
+parer.sip.template-path = config/template/parer_sip_index_template.xml
+
+# XSD di validazione (classpath o path assoluto su filesystem)
+parer.sip.xsd-path      = xsd/WSRequestUnico1_5.xsd
+
+# ── SIP section builders ──────────────────────────────────────────────────────
+
+# Classificazione master/annotazione per nome e estensione file (sostituisce path-based annotazioni-path)
+# Suffissi nel nome file (senza estensione) che identificano master/annotazione
+parer.sip.file-classifier.master-suffixes        = _principale
+parer.sip.file-classifier.annotation-suffixes    = _annotazione
+# Estensioni che identificano master (default: bz2)
+parer.sip.file-classifier.master-extensions      = bz2
+# Estensioni che identificano annotazione
+parer.sip.file-classifier.annotation-extensions  = txt,docx,doc,odt,rtf,md,csv,xlsx,xls,ods,tsv,xml
+
+# ComponenteHelper — tag XML del blocco <Componente>
+parer.sip.componente.tag-componente      = Componente
+parer.sip.componente.tag-id              = ID
+parer.sip.componente.tag-ordine          = OrdinePresentazione
+parer.sip.componente.tag-tipo-componente = TipoComponente
+parer.sip.componente.tag-tipo-supporto   = TipoSupportoComponente
+parer.sip.componente.tag-nome            = NomeComponente
+parer.sip.componente.tag-formato         = FormatoFileVersato
+parer.sip.componente.tag-hash            = HashVersato
+
+# SenderBuilder — tag XML del blocco <Versatore>
+parer.sip.sender.tag-versatore = Versatore
+parer.sip.sender.tag-ambiente  = Ambiente
+parer.sip.sender.tag-ente      = Ente
+parer.sip.sender.tag-struttura = Struttura
+parer.sip.sender.tag-user-id   = UserID
+
+# KeyBuilder — chiavi metadato e tag XML del blocco <Chiave>
+parer.sip.key.number-key        = number
+parer.sip.key.year-key          = year
+parer.sip.key.registry-type-key = registryType
+parer.sip.key.tag-numero        = Numero
+parer.sip.key.tag-anno          = Anno
+parer.sip.key.tag-tipo-registro = TipoRegistro
+
+# UnitBuilder — chiavi metadato e tag XML del blocco <ProfiloUnitaDocumentaria>
+parer.sip.unit.subject-key = subject
+parer.sip.unit.date-key    = date
+parer.sip.unit.tag-oggetto = Oggetto
+parer.sip.unit.tag-data    = Data
+
+# SpecificDataBuilder — chiavi metadato e tag XML del blocco <DatiSpecifici>
+parer.sip.specific.collection-id-key          = collectionId
+parer.sip.specific.collection-description-key = collectionDescription
+parer.sip.specific.data-provider-key          = dataProvider
+parer.sip.specific.tag-collezione-id          = CollezioneID
+parer.sip.specific.tag-collezione-desc        = CollezioneDescrizione
+parer.sip.specific.tag-data-provider          = DataProvider
+
+# PrincipalDocumentBuilder — tag XML del blocco <DocumentoPrincipale>
+parer.sip.principal.tipo-documento          = AMS_HISTORICA
+parer.sip.principal.tipo-struttura          = DocumentoGenerico
+parer.sip.principal.tipo-componente         = Contenuto
+parer.sip.principal.tipo-supporto           = FILE
+parer.sip.principal.tag-id-documento        = IDDocumento
+parer.sip.principal.tag-tipo-documento      = TipoDocumento
+parer.sip.principal.tag-struttura-originale = StrutturaOriginale
+parer.sip.principal.tag-tipo-struttura      = TipoStruttura
+parer.sip.principal.tag-componenti          = Componenti
+parer.sip.principal.tag-hash-documento         = HashVersato
+
+# AnnotationsBuilder — tag XML del blocco <Annotazioni>
+parer.sip.annotations.tipo-documento        = ANNOTAZIONE
+parer.sip.annotations.tipo-struttura        = DocumentoGenerico
+parer.sip.annotations.tipo-componente       = Contenuto
+parer.sip.annotations.tipo-supporto         = FILE
+parer.sip.annotations.tag-annotazioni       = Annotazioni
+parer.sip.annotations.tag-annotazione       = Annotazione
+parer.sip.annotations.tag-id-documento      = IDDocumento
+parer.sip.annotations.tag-tipo-documento    = TipoDocumento
+parer.sip.annotations.tag-struttura-originale = StrutturaOriginale
+parer.sip.annotations.tag-tipo-struttura    = TipoStruttura
+parer.sip.annotations.tag-componenti        = Componenti
+parer.sip.annotations.tag-hash                = HashVersato
+
+# ProfiloDocumento — blocco condiviso da DocumentoPrincipale e Annotazione
+# Chiave metadato per la voce COAR (es. dc.type.coar) in SipIndexContext
+parer.sip.profilo-documento.coar-key        = coar
+parer.sip.profilo-documento.tag             = ProfiloDocumento
+parer.sip.profilo-documento.tag-descrizione = Descrizione
+
+# ── FTP (ParER staging area) ───────────────────────
+ftp.host               =
+ftp.port               =
+ftp.user               =
+ftp.password           =
+ftp.upload.dir         =
+ftp.connect-timeout-ms =
+ftp.data-timeout-ms    =
+ftp.threads            =
+
+# ── FTPS (ParER staging area — explicit TLS, AUTH TLS) ───────────────────────
+# Override via env: FTPS_HOST, FTPS_PORT, FTPS_USER, FTPS_PASSWORD,
+#                   FTPS_UPLOAD_DIR, FTPS_CONNECT_TIMEOUT_MS, FTPS_DATA_TIMEOUT_MS, FTPS_THREADS
+ftps.host               =
+ftps.port               =
+ftps.user               =
+ftps.password           =
+ftps.upload.dir         =
+ftps.connect.timeout.ms =
+ftps.data.timeout.ms    =
+ftps.threads            =
+
+# ── SFTP (attivare con spring.profiles.active=sftp) ──────────────────────────
+sftp.host               =
+sftp.port               =
+sftp.user               =
+sftp.password           =
+sftp.upload.dir         =
+sftp.connect-timeout-ms =
+# parer.sftp.known-hosts-file = /path/to/known_hosts
+
+# ── ParER SOAP endpoints ──────────────────────────────────────────────────────
+parer.soap.pre-ingest-url           =
+parer.soap.notifica-url             =
+parer.soap.aggiunta-allegati-url    =
+parer.soap.connect-timeout-ms       = 10000
+parer.soap.read-timeout-ms          = 30000
+
+# ── ParER SOAP WS-Security ────────────────────────────────────────────────────
+parer.soap.wsse.username      =
+parer.soap.wsse.password      =
+parer.soap.wsse.actions       = UsernameToken
+parer.soap.wsse.password.type = PasswordText
+
+# ── BatchRunner ───────────────────────────────────────────────────────────────
+parer.batch.key-prefix = parer/esecuzioni/
+parer.batch.key-suffix = .process
+parer.batch.log-prefix = parer/log/
+
+# ── S3 content path ──────────────────────────────────────────────────────────
+# Prefix for SIP content directories on S3 (documentazione: parer/inserimento/)
+parer.s3.content-prefix = parer/inserimento/
+
+# ── S3 ZIP destination (ZipToS3Step — alternativa a FTP) ─────────────────────
+# Bucket destinazione per lo ZIP (diverso dal bucket sorgente dei contenuti).
+# Attivare: sostituire fileTransferStep con zipToS3Step nella pipeline in worker-services.xml
+parer.s3.zip-destination-bucket =
+parer.s3.zip-destination-prefix = zip
+
+# Transfer mode: false (default) = ZIP; true = per-file FTP (legacy)
+# Override at startup: java -Dftptransfer-sendsinglefiles=true
+ftptransfer-sendsinglefiles         = false
+
+# ── Metadata / DSpace ─────────────────────────────────────────────────────────
+# source system identifier
+parer.metadata.source-system     = dspace
+# DSpace REST API base URL (used by MetadataResolverDspaceRest)
+parer.metadata.dspace-base-url   =
+parer.handle.expected-prefix = 123456789
+parer.metadata.api-token         =
+parer.metadata.access =
+parer.metadata.cache-ttl-seconds = 300
+
+# ── Spring profiles ───────────────────────────────────────────────────────────
+spring.profiles.active = parer
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging.level.it.ivscience.parer = INFO
+
+parer.sipbuilder.dspace-rest-metadata-resolver.enabled = true

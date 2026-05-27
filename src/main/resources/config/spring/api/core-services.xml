@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/tx
+           https://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--
+        DataSource — Apache Commons DBCP2 (DSpace pattern).
+        Configured via DSpace-native db.* keys from parer.cfg / local.cfg.
+    -->
+    <bean id="dataSource"
+          class="org.apache.commons.dbcp2.BasicDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${db.driver}"/>
+        <property name="url"             value="${db.url}"/>
+        <property name="username"        value="${db.username}"/>
+        <property name="password"        value="${db.password}"/>
+        <property name="maxTotal"        value="${db.maxconnections}"/>
+        <property name="maxWaitMillis"   value="${db.maxwait}"/>
+        <property name="maxIdle"         value="${db.maxidle}"/>
+        <property name="testOnBorrow"    value="true"/>
+        <property name="validationQuery" value="SELECT 1"/>
+    </bean>
+
+    <!--
+        SessionFactory — Native Hibernate, DSpace 7.x pattern.
+        Replaces LocalContainerEntityManagerFactoryBean (JPA).
+        Scans JPA entities (@Entity) in the content package.
+    -->
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="it.ivscience.parer.content"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${db.dialect}</prop>
+                <prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto:none}</prop>
+                <prop key="hibernate.default_schema">${db.schema:public}</prop>
+                <prop key="hibernate.show_sql">false</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--
+        HibernateTransactionManager — manages @Transactional on services.
+        Replaces JpaTransactionManager.
+    -->
+    <bean id="transactionManager"
+          class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- Jackson ObjectMapper — shared JSON serialization bean -->
+    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
+
+    <!-- Enable @Transactional -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+</beans>

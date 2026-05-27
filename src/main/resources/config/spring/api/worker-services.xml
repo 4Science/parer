@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--
+        Pipeline steps — remove a <ref bean="..."/> to disable that step entirely.
+        Order matters: sipBuildStep → preIngestStep → zipToFtpStep → notificationStep.
+    -->
+
+    <!--
+        SipBuildStep: resolves document metadata (optional) then enumerates S3
+        content files, builds and validates the SIP XML.
+
+        parerKey = objectId (REGISTRO^ANNO^NUMERO) — comes directly from the
+        incoming message; no computation from metadata fields needed.
+
+        resolveMetadata=false → metadata resolution skipped (SipBuilder receives
+        null context). Useful for testing or environments without DSpace.
+    -->
+    <!--
+        SipStatusRegistry: ordered list of pipeline statuses.
+        Edit ONLY this file to add/rename/reorder statuses — no Java changes needed.
+    -->
+    <bean id="it.ivscience.parer.worker.model.SipStatusRegistry"
+          class="it.ivscience.parer.worker.model.SipStatusRegistry">
+        <property name="statuses">
+            <list>
+                <value>CREATED</value>
+                <value>PROCESSING_PREINGEST</value>
+                <value>PROCESSING_FTP_TRANSFER</value>
+                <value>PROCESSING_SENT_NOTIFICATION</value>
+                <value>FAILED_PREINGEST</value>
+                <value>FAILED_FTP_TRANSFER</value>
+                <value>FAILED_SENT_NOTIFICATION</value>
+                <value>SUCCESS</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="sipBuildStep"
+          class="it.ivscience.parer.worker.step.SipBuildStep">
+        <property name="resolveMetadata"      value="${parer.sipbuilder.dspace-rest-metadata-resolver.enabled}"/>
+        <property name="expectedHandlePrefix" value="${parer.handle.expected-prefix}"/>
+        <property name="failedStatus"         value="FAILED_PREINGEST"/>
+    </bean>
+
+    <bean id="preIngestStep"
+          class="it.ivscience.parer.worker.step.PreIngestStep">
+        <property name="environment"       value="${parer.versatore.ambiente}"/>
+        <property name="submitter"         value="${parer.versatore.nome}"/>
+        <property name="objectType"        value="${parer.versatore.tipo-object}"/>
+        <property name="processingStatus"  value="PROCESSING_PREINGEST"/>
+        <property name="failedStatus"      value="FAILED_PREINGEST"/>
+    </bean>
+
+    <bean id="zipToFtpStep"
+          class="it.ivscience.parer.worker.step.ZipToFtpStep">
+        <property name="sendSingleFiles"   value="${ftptransfer-sendsinglefiles}"/>
+        <property name="ftpThreads"        value="${ftp.threads}"/>
+        <property name="processingStatus"  value="PROCESSING_FTP_TRANSFER"/>
+        <property name="failedStatus"      value="FAILED_FTP_TRANSFER"/>
+    </bean>
+
+    <!--
+        ZipToS3Step: alternative to zipToFtpStep for environments without FTP.
+        Streams a ZIP from the source bucket (content files) to a separate destination
+        S3 bucket — no FTP involved.
+        To enable: replace <ref bean="zipToFtpStep"/> with <ref bean="zipToS3Step"/>
+        in the pipeline list below.
+    -->
+    <bean id="zipToS3Step"
+          class="it.ivscience.parer.worker.step.ZipToS3Step">
+        <property name="destinationBucket" value="${parer.s3.zip-destination-bucket}"/>
+        <property name="destinationPrefix" value="${parer.s3.zip-destination-prefix}"/>
+        <property name="processingStatus"  value="PROCESSING_FTP_TRANSFER"/>
+        <property name="failedStatus"      value="FAILED_FTP_TRANSFER"/>
+    </bean>
+
+    <bean id="notificationStep"
+          class="it.ivscience.parer.worker.step.NotificationStep">
+        <property name="environment"       value="${parer.versatore.ambiente}"/>
+        <property name="submitter"         value="${parer.versatore.nome}"/>
+        <property name="fileType"          value="${parer.versatore.tipo-object}"/>
+        <property name="processingStatus"  value="PROCESSING_SENT_NOTIFICATION"/>
+        <property name="failedStatus"      value="FAILED_SENT_NOTIFICATION"/>
+    </bean>
+
+    <!--
+        SipPipeline: minimal orchestrator.
+        Handles idempotency, SipPackage lifecycle, and step iteration only.
+    -->
+    <bean id="it.ivscience.parer.worker.SipPipeline"
+          class="it.ivscience.parer.worker.SipPipeline">
+        <property name="contentPrefix" value="${parer.s3.content-prefix}"/>
+        <property name="successStatus" value="SUCCESS"/>
+        <property name="steps">
+            <list>
+                <!--
+                <ref bean="zipToS3Step"/>
+                -->
+                <ref bean="preIngestStep"/>
+                <ref bean="sipBuildStep"/>
+                <ref bean="zipToFtpStep"/>
+                <ref bean="notificationStep"/>
+            </list>
+        </property>
+    </bean>
+
+    <!--
+        BatchRunner: CLI-driven one-shot batch runner.
+        Reads s3-bucket and s3-key from command line, fetches the .process
+        descriptor from S3, and delegates to SipPipeline.
+    -->
+    <bean id="it.ivscience.parer.worker.BatchRunner"
+          class="it.ivscience.parer.worker.BatchRunner"/>
+
+</beans>

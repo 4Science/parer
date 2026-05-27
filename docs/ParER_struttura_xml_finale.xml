@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UnitaDocumentaria>
+	<Intestazione>
+		<Versione>1.5</Versione>
+		<Versatore>
+			<!--Le informazioni inserite nella sezione <Versatore> vengono condivise da ParER e differiscono tra pre-produzione e produzione-->
+			<Ambiente>PARER_TEST</Ambiente>
+			<Ente>XF_ENTE_TEST</Ente>
+			<Struttura>BUB_DL</Struttura>
+			<UserID>enrico.fagiani</UserID>
+			<!--UserID dell'utente che ha effettuato il versamento.
+			A regime sarà indicato l'utente collegato a Pre-Ingest o l'automa collegato al sistema versante-->
+		</Versatore>
+		<Chiave>
+			<Numero>81203</Numero> <!--Identificativo/Handle-->
+			<!--OBBLIGATORIO. Estratto dalla denominazione del file, o dal "dc.identifier.uri"-->
+
+			<Anno>2000</Anno> // Obbligatorio, mettiamo "2000" per le risorse che hanno corrispettivo in DSpace e "2001" per quelle che non lo hanno
+			<!--OBBLIGATORIO. E' possibile utilizzare un valore convenzionale così da ovviare ai casi in cui il dato non è noto.
+			Ciò non influisce sull'univocità della chiave in quanto già il numero è sufficiente-->
+
+			<TipoRegistro>AMS_HISTORICA</TipoRegistro> <!-- Nome del registro = Fisso per tutte le risorse -->
+			<!--OBBLIGATORIO-->
+			<!--<DescrizioneTipoRegistro></DescrizioneTipoRegistro>--> Forse la descrizione potrebbe essere valorizzata con questo tag
+
+		</Chiave>
+		<TipologiaUnitaDocumentaria>AMS Historica</TipologiaUnitaDocumentaria>
+		<!--Per comodità negli esempi ho differenziato le tipologie documentarie, su questo possiamo anche individuare una denominazione unica per tutte le collezioni o inserire un valore del tipo "TESTO", "VIDEO" ecc-->
+	</Intestazione>
+	<Configurazione>
+		<!--I campi di seguito sono funzionali alla gestione delle verifiche che il Sistema effettua al momento del versamento su firma digitale, hash, formato file e presenza di collegamenti tra ud.
+        Per ora non modificherei i valori standard-->
+		<TipoConservazione>VERSAMENTO_ANTICIPATO</TipoConservazione>
+		<!--OBBLIGATORIO. valore standard-->
+		<ForzaAccettazione>false</ForzaAccettazione>
+		<ForzaConservazione>true</ForzaConservazione>
+		<ForzaCollegamento>true</ForzaCollegamento>
+		<ForzaHash>false</ForzaHash>
+		<ForzaFormatoNumero>false</ForzaFormatoNumero>
+		<ForzaFormatoFile>true</ForzaFormatoFile>
+		<SimulaSalvataggioDatiInDB>false</SimulaSalvataggioDatiInDB>
+	</Configurazione>
+	<ProfiloUnitaDocumentaria>
+		<Oggetto>Bologna, Biblioteca Universitaria di Bologna, Aldrovandi, ms. 23</Oggetto>
+		<!--OBBLIGATORIO.Valore estratto dal"dc.title, per risorse non nella DL ci si basa sul nome della Directory"-->
+		<Data>1573-01-01</Data>
+		<!--Valore dell'anno estratto da "dc.date.issued", se cè solo anno aggiungiamo 01-01-->
+	</ProfiloUnitaDocumentaria>
+	<DatiSpecifici>
+		<!--In questa sezione possono essere inserite ulteriori informazioni.
+        Quelle sotto riportate (con l'esclusione del campo <VersioneDatiSpecifici>) hanno esclusivamente funzione di esempio-->
+		<VersioneDatiSpecifici>1.0</VersioneDatiSpecifici>
+		<CollezioneID></CollezioneID> <!--handle collezione solo per risorse in DSpace-->
+		<CollezioneDescrizione></CollezioneDescrizione> <!--nome collezione solo per risorse in DSpace-->
+		<DataProvider></DataProvider> <!--metadato Data Provider solo per risorse in DSpace-->
+	</DatiSpecifici>
+	<NumeroAllegati>0</NumeroAllegati>
+	<!--Numero degli eventuali allegati. Secondo l'impostazione condivisa il numero sarà sempre 0-->
+	<NumeroAnnessi>0</NumeroAnnessi>
+	<!--Numero degli eventuali annessi. Secondo l'impostazione condivisa il numero sarà sempre 0-->
+	<NumeroAnnotazioni>3</NumeroAnnotazioni>
+	<!--Numero delle annotazioni all'oggetto conservato. Per i materiali contenuti nella DL ci sarà solo Dublin Core, per i materiali non contenuti nella DL ci possono essere file di corredo ai bitstream-->
+	<DocumentoPrincipale>
+		<!--Oggetto conservato e digitalizzato-->
+		<IDDocumento>81203-aldrovandi_ms_23</IDDocumento> <!--nome della cartella-->
+		<!--OBBLIGATORIO. Rappresenta l’identificativo del documento assegnato dal produttore. Deve essere univoco all’interno della stessa Unità Documentaria-->
+		<TipoDocumento>AMS_HISTORICA</TipoDocumento>
+		<!--OBBLIGATORIO. La denominazione può essere modificata.-->
+		<ProfiloDocumento>
+			<Descrizione>Resource Types::text::conference output::conference proceedings::conference paper</Descrizione>
+			<!-- valore dc.type.coar per oggetti DSpace -->
+		</ProfiloDocumento>
+		<StrutturaOriginale>
+			<TipoStruttura>DocumentoGenerico</TipoStruttura>
+			<!--Valore standard-->
+			<Componenti>
+				<!--Come condiviso il documento principale (oggetto conservato) si compone di diversi file, a titolo di esempio ne sono stati inseriti 3-->
+				<Componente>
+					<ID>ID1</ID> <!--nome file-->
+					<!--OBBLIGATORIO. È la chiave del file nel SIP e consente di ricongiungere il Componente al relativo file del SIP. Non è memorizzato nel Sistema e deve essere univoco all'interno dell'Indice SIP-->
+					<OrdinePresentazione>1</OrdinePresentazione>
+					<!--OBBLIGATORIO. Numero che indica l’ordine di successione del singolo Componente all’interno del Documento. Deve essere univoco e possibilmente sequenziale all’interno del Documento-->
+					<TipoComponente>Contenuto</TipoComponente>
+					<!--Valore standard-->
+					<TipoSupportoComponente>FILE</TipoSupportoComponente>
+					<!--Valore standard-->
+					<NomeComponente>Prova.pdf</NomeComponente>
+					<!--OBBLIGATORIO. Stringa che rappresenta il nome del file nei sistemi del produttore-->
+					<FormatoFileVersato>PDF</FormatoFileVersato> <!--mettiamo l'estensione-->
+					<!--OBBLIGATORIO. Rappresenta il formato del file-->
+					<HashVersato>xxxxx</HashVersato>
+					<!--Rappresenta l’hash del file. Il Sistema supporta i seguenti algoritmi di hash:
+					- MD5 conforme alla specifica RFC 1321 (Rivest et al.) – come blocco di 16 byte – 128 bit
+					- SHA-1 conforme alla specifica FIPS PUB 180-4 – come blocco di 20 byte – 160 bit
+					- SHA-256 conforme alla specifica FIPS PUB 180-4 – come blocco di 32 byte – 256 bit-->
+					<!-- prendere l'hash dall'oggetto s3 -->
+				</Componente>
+				<Componente>
+					<ID>ID2</ID>
+					<OrdinePresentazione>2</OrdinePresentazione>
+					<TipoComponente>Contenuto</TipoComponente>
+					<TipoSupportoComponente>FILE</TipoSupportoComponente>
+					<NomeComponente>Prova.pdf</NomeComponente>
+					<FormatoFileVersato>PDF</FormatoFileVersato>
+					<HashVersato>xxxxx</HashVersato>
+				</Componente>
+				<Componente>
+					<ID>ID3</ID>
+					<OrdinePresentazione>3</OrdinePresentazione>
+					<TipoComponente>Contenuto</TipoComponente>
+					<TipoSupportoComponente>FILE</TipoSupportoComponente>
+					<NomeComponente>Prova.pdf</NomeComponente>
+					<FormatoFileVersato>PDF</FormatoFileVersato>
+					<HashVersato>xxxxx</HashVersato>
+				</Componente>
+			</Componenti>
+		</StrutturaOriginale>
+	</DocumentoPrincipale>
+	<Annotazioni> Per risorse non DL nella cartella "Annotazioni" ci può essere materiale associato da inviare nella DL
+		<Annotazione>
+			<IDDocumento>81203-master-hashes.txt</IDDocumento> <!--nome file-->
+			<TipoDocumento>ANNOTAZIONE</TipoDocumento> <!--"annotazione" sempre-->
+			<!--Il tipo documento ANNOTAZIONE può essere tipizzato: NO-->
+			<StrutturaOriginale>
+				<TipoStruttura>DocumentoGenerico</TipoStruttura>
+				<Componenti>
+					<Componente>
+						<ID>ID4</ID> <!--nome file-->
+						<OrdinePresentazione>1</OrdinePresentazione>
+						<TipoComponente>Contenuto</TipoComponente>
+						<TipoSupportoComponente>FILE</TipoSupportoComponente>
+						<NomeComponente>Prova.pdf</NomeComponente>
+						<FormatoFileVersato>PDF</FormatoFileVersato>
+						<HashVersato>xxxxx</HashVersato>
+					</Componente>
+				</Componenti>
+			</StrutturaOriginale>
+		</Annotazione>
+		<Annotazione>
+			<IDDocumento>81203-bz2-hashes.txt</IDDocumento>
+			<TipoDocumento>ANNOTAZIONE</TipoDocumento>
+			<StrutturaOriginale>
+				<TipoStruttura>DocumentoGenerico</TipoStruttura>
+				<Componenti>
+					<Componente>
+						<ID>ID5</ID>
+						<OrdinePresentazione>1</OrdinePresentazione>
+						<TipoComponente>Contenuto</TipoComponente>
+						<TipoSupportoComponente>FILE</TipoSupportoComponente>
+						<NomeComponente>Prova.pdf</NomeComponente>
+						<FormatoFileVersato>PDF</FormatoFileVersato>
+						<HashVersato>xxxxx</HashVersato>
+					</Componente>
+				</Componenti>
+			</StrutturaOriginale>
+		</Annotazione>
+		<Annotazione>
+			<IDDocumento>881203-metadata.csv</IDDocumento>
+			<TipoDocumento>ANNOTAZIONE</TipoDocumento>
+			<StrutturaOriginale>
+				<TipoStruttura>DocumentoGenerico</TipoStruttura>
+				<Componenti>
+					<Componente>
+						<ID>ID6</ID>
+						<OrdinePresentazione>1</OrdinePresentazione>
+						<TipoComponente>Contenuto</TipoComponente>
+						<TipoSupportoComponente>FILE</TipoSupportoComponente>
+						<NomeComponente>Prova.pdf</NomeComponente>
+						<FormatoFileVersato>PDF</FormatoFileVersato>
+						<HashVersato>xxxxx</HashVersato>
+					</Componente>
+				</Componenti>
+			</StrutturaOriginale>
+		</Annotazione>
+	</Annotazioni>
+</UnitaDocumentaria>

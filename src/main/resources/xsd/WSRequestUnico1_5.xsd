@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Schema XSD per l'Indice SIP ParER — WSRequestUnico 1.5
+  Struttura basata su ParER_struttura_xml_finale.xml.
+  HashVersato è opzionale (ForzaHash=false nella Configurazione).
+  Aggiornare con lo schema ufficiale fornito da ParER/IBACN quando disponibile.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <xs:element name="UnitaDocumentaria" type="UnitaDocumentariaType"/>
+
+    <xs:complexType name="UnitaDocumentariaType">
+        <xs:sequence>
+            <xs:element name="Intestazione"              type="IntestazioneType"/>
+            <xs:element name="Configurazione"            type="ConfigurazioneType"/>
+            <xs:element name="ProfiloUnitaDocumentaria"  type="ProfiloUDType"/>
+            <xs:element name="DatiSpecifici"             type="DatiSpecificiType" minOccurs="0"/>
+            <xs:element name="NumeroAllegati"            type="xs:string"/>
+            <xs:element name="NumeroAnnessi"             type="xs:string"/>
+            <xs:element name="NumeroAnnotazioni"         type="xs:string"/>
+            <xs:element name="DocumentoPrincipale"       type="DocumentoType"/>
+            <xs:element name="Annotazioni"               type="AnnotazioniType"   minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── Intestazione ────────────────────────────────────────────────────── -->
+    <xs:complexType name="IntestazioneType">
+        <xs:sequence>
+            <xs:element name="Versione"                   type="xs:string"/>
+            <xs:element name="Versatore"                  type="VersatoreType"/>
+            <xs:element name="Chiave"                     type="ChiaveType"/>
+            <xs:element name="TipologiaUnitaDocumentaria" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VersatoreType">
+        <xs:sequence>
+            <xs:element name="Ambiente"  type="xs:string"/>
+            <xs:element name="Ente"      type="xs:string"/>
+            <xs:element name="Struttura" type="xs:string"/>
+            <xs:element name="UserID"    type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ChiaveType">
+        <xs:sequence>
+            <xs:element name="Numero"       type="xs:string"/>
+            <xs:element name="Anno"         type="xs:string"/>
+            <xs:element name="TipoRegistro" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── Configurazione ─────────────────────────────────────────────────── -->
+    <xs:complexType name="ConfigurazioneType">
+        <xs:sequence>
+            <xs:element name="TipoConservazione"       type="xs:string"/>
+            <xs:element name="ForzaAccettazione"       type="xs:string"/>
+            <xs:element name="ForzaConservazione"      type="xs:string"/>
+            <xs:element name="ForzaCollegamento"       type="xs:string"/>
+            <xs:element name="ForzaHash"               type="xs:string"/>
+            <xs:element name="ForzaFormatoNumero"      type="xs:string"/>
+            <xs:element name="ForzaFormatoFile"        type="xs:string"/>
+            <xs:element name="SimulaSalvataggioDatiInDB" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── ProfiloUnitaDocumentaria ───────────────────────────────────────── -->
+    <xs:complexType name="ProfiloUDType">
+        <xs:sequence>
+            <xs:element name="Oggetto" type="xs:string"/>
+            <xs:element name="Data"    type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── DatiSpecifici ──────────────────────────────────────────────────── -->
+    <xs:complexType name="DatiSpecificiType">
+        <xs:sequence>
+            <xs:element name="VersioneDatiSpecifici"  type="xs:string"/>
+            <xs:element name="CollezioneID"           type="xs:string" minOccurs="0"/>
+            <xs:element name="CollezioneDescrizione"  type="xs:string" minOccurs="0"/>
+            <xs:element name="DataProvider"           type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── Documento (used by DocumentoPrincipale and Annotazione) ────────── -->
+    <xs:complexType name="DocumentoType">
+        <xs:sequence>
+            <xs:element name="IDDocumento"     type="xs:string"/>
+            <xs:element name="TipoDocumento"   type="xs:string"/>
+            <xs:element name="ProfiloDocumento" type="ProfiloDocumentoType" minOccurs="0"/>
+            <xs:element name="StrutturaOriginale" type="StrutturaOriginaleType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ProfiloDocumentoType">
+        <xs:sequence>
+            <xs:element name="Descrizione" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="StrutturaOriginaleType">
+        <xs:sequence>
+            <xs:element name="TipoStruttura" type="xs:string"/>
+            <xs:element name="Componenti"    type="ComponentiType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ComponentiType">
+        <xs:sequence>
+            <xs:element name="Componente" type="ComponenteType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ComponenteType">
+        <xs:sequence>
+            <xs:element name="ID"                    type="xs:string"/>
+            <xs:element name="OrdinePresentazione"   type="xs:string"/>
+            <xs:element name="TipoComponente"        type="xs:string"/>
+            <xs:element name="TipoSupportoComponente" type="xs:string"/>
+            <xs:element name="NomeComponente"        type="xs:string"/>
+            <xs:element name="FormatoFileVersato"    type="xs:string"/>
+            <xs:element name="HashVersato"           type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ── Annotazioni ────────────────────────────────────────────────────── -->
+    <xs:complexType name="AnnotazioniType">
+        <xs:sequence>
+            <xs:element name="Annotazione" type="DocumentoType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Default: FTPS explicit TLS (no "sftp" profile) -->
+    <beans profile="!sftp">
+            <bean id="it.ivscience.parer.worker.ftp.impl.FtpsClientImpl"
+                  class="it.ivscience.parer.worker.ftp.impl.FtpsClientImpl">
+                <property name="host"             value="${ftps.host}"/>
+                <property name="port"             value="${ftps.port}"/>
+                <property name="username"         value="${ftps.user}"/>
+                <property name="password"         value="${ftps.password}"/>
+                <property name="inputFolder"      value="${ftps.upload.dir}"/>
+                <property name="connectTimeoutMs" value="${ftps.connect.timeout.ms}"/>
+                <property name="dataTimeoutMs"    value="${ftps.data.timeout.ms}"/>
+            </bean>
+        </beans>
+        <!-- SFTP alternative: activate with spring.profiles.active=sftp -->
+        <beans profile="sftp">
+            <bean id="it.ivscience.parer.worker.ftp.impl.SftpClientImpl"
+                  class="it.ivscience.parer.worker.ftp.impl.SftpClientImpl">
+                <property name="host"             value="${sftp.host}"/>
+                <property name="port"             value="${sftp.port}"/>
+                <property name="username"         value="${sftp.user}"/>
+                <property name="password"         value="${sftp.password}"/>
+                <property name="inputFolder"      value="${sftp.upload.dir}"/>
+                <property name="connectTimeoutMs" value="${sftp.connect-timeout-ms}"/>
+                <property name="knownHostsFile"   value="${sftp.known-hosts-file}"/>
+            </bean>
+    </beans>
+    <!-- SFTP alternative: activate with spring.profiles.active=sftp -->
+    <beans profile="ftp">
+        <bean id="it.ivscience.parer.worker.ftp.impl.FtpClientImpl"
+              class="it.ivscience.parer.worker.ftp.impl.FtpClientImpl">
+            <property name="host"             value="${ftp.host}"/>
+            <property name="port"             value="${ftp.port}"/>
+            <property name="username"         value="${ftp.user}"/>
+            <property name="password"         value="${ftp.password}"/>
+            <property name="inputFolder"      value="${ftp.upload.dir}"/>
+            <property name="connectTimeoutMs" value="${ftp.connect-timeout-ms}"/>
+            <property name="knownHostsFile"   value="${ftp.known-hosts-file}"/>
+        </bean>
+    </beans>
+
+</beans>

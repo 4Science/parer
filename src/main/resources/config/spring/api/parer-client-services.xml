@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- WS-Security UsernameToken interceptor -->
+    <bean id="wss4jInterceptor"
+          class="org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor">
+        <property name="securementActions"      value="${parer.soap.wsse.actions}"/>
+        <property name="securementUsername"     value="${parer.soap.wsse.username}"/>
+        <property name="securementPassword"     value="${parer.soap.wsse.password}"/>
+        <property name="securementPasswordType" value="${parer.soap.wsse.password.type}"/>
+    </bean>
+
+    <!-- HTTP sender with configurable timeouts -->
+    <bean id="parerHttpSender"
+          class="org.springframework.ws.transport.http.HttpUrlConnectionMessageSender">
+        <property name="connectionTimeout">
+            <bean class="java.time.Duration" factory-method="ofMillis">
+                <constructor-arg value="${parer.soap.connect-timeout-ms}"/>
+            </bean>
+        </property>
+        <property name="readTimeout">
+            <bean class="java.time.Duration" factory-method="ofMillis">
+                <constructor-arg value="${parer.soap.read-timeout-ms}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- Shared WebServiceTemplate — Spring-managed so interceptors are properly applied -->
+    <bean id="parerWebServiceTemplate"
+          class="org.springframework.ws.client.core.WebServiceTemplate">
+        <property name="messageSender" ref="parerHttpSender"/>
+        <property name="interceptors">
+            <list><ref bean="wss4jInterceptor"/></list>
+        </property>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.parer.impl.PreIngestClientImpl"
+          class="it.ivscience.parer.worker.parer.impl.PreIngestClientImpl">
+        <property name="preIngestEndpointUrl" value="${parer.soap.pre-ingest-url}"/>
+        <property name="webServiceTemplate"   ref="parerWebServiceTemplate"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.parer.impl.NotificationClientImpl"
+          class="it.ivscience.parer.worker.parer.impl.NotificationClientImpl">
+        <property name="notificationEndpointUrl" value="${parer.soap.notifica-url}"/>
+        <property name="webServiceTemplate"      ref="parerWebServiceTemplate"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.parer.impl.AttachmentAddClientImpl"
+          class="it.ivscience.parer.worker.parer.impl.AttachmentAddClientImpl">
+        <property name="attachmentAddUrl"   value="${parer.soap.aggiunta-allegati-url}"/>
+        <property name="webServiceTemplate" ref="parerWebServiceTemplate"/>
+    </bean>
+
+</beans>

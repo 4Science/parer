@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UnitaDocumentaria>
+	<Intestazione>
+		<Versione>1.5</Versione>
+			{SenderBuilder}
+		<Chiave>
+			{KeyBuilder}
+		</Chiave>
+		<TipologiaUnitaDocumentaria>AMS_HISTORICA</TipologiaUnitaDocumentaria>
+	</Intestazione>
+	<Configurazione>
+		<TipoConservazione>VERSAMENTO_ANTICIPATO</TipoConservazione>
+		<ForzaAccettazione>false</ForzaAccettazione>
+		<ForzaConservazione>true</ForzaConservazione>
+		<ForzaCollegamento>true</ForzaCollegamento>
+		<ForzaHash>false</ForzaHash>
+		<ForzaFormatoNumero>false</ForzaFormatoNumero>
+		<ForzaFormatoFile>true</ForzaFormatoFile>
+		<SimulaSalvataggioDatiInDB>false</SimulaSalvataggioDatiInDB>
+	</Configurazione>
+	<ProfiloUnitaDocumentaria>
+		{UnitBuilder}
+	</ProfiloUnitaDocumentaria>
+	<DatiSpecifici>
+		<VersioneDatiSpecifici>1.0</VersioneDatiSpecifici>
+		{SpecificDataBuilder}
+	</DatiSpecifici>
+	<NumeroAllegati>0</NumeroAllegati>
+	<NumeroAnnessi>0</NumeroAnnessi>
+	<NumeroAnnotazioni>{CountAnnotationsBuilder}</NumeroAnnotazioni>
+	<DocumentoPrincipale>
+		{PrincipalDocumentBuilder}
+	</DocumentoPrincipale>
+	{AnnotationsBuilder}
+</UnitaDocumentaria>

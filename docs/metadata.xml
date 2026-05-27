@@ -1,0 +1,36 @@
+<metadata>
+  <dublin_core schema="dc">
+      <dcvalue element="title" qualifier="none">A Tale of Two Cities</dcvalue>
+      <dcvalue element="date" qualifier="issued">1990</dcvalue>
+      <dcvalue element="title" qualifier="alternative" language="fr">J'aime les Printemps</dcvalue>
+  </dublin_core>
+
+  <dublin_core schema="dspace">
+    <dcvalue element="entity" qualifier="type">ArchivalMaterial</dcvalue>
+  </dublin_core>
+
+  <dublin_core schema="dcterms">
+      <dcvalue element="title" qualifier="none">A Tale of Two Cities</dcvalue>
+  </dublin_core>
+</metadata>
+
+
+
+<Annotazione>
+<IDDocumento>metadata.xml</IDDocumento>
+<TipoDocumento>ANNOTAZIONE</TipoDocumento>
+<StrutturaOriginale>
+<TipoStruttura>DocumentoGenerico</TipoStruttura>
+<Componenti>
+<Componente>
+<ID>metadata.xml</ID>
+<OrdinePresentazione>1</OrdinePresentazione>
+<TipoComponente>Contenuto</TipoComponente>
+<TipoSupportoComponente>FILE</TipoSupportoComponente>
+<NomeComponente>metadata.xml</NomeComponente>
+<FormatoFileVersato>XML</FormatoFileVersato>
+<HashVersato>xxxxx</HashVersato>
+</Componente>
+</Componenti>
+</StrutturaOriginale>
+</Annotazione>

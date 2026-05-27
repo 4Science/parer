@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--
+        Service layer — DSpace pattern.
+        DAOs are injected via @Autowired (byType).
+        Write methods have @Transactional; the TX manager is HibernateTransactionManager.
+    -->
+
+    <bean id="it.ivscience.parer.content.service.impl.SipPackageServiceImpl"
+          class="it.ivscience.parer.content.service.impl.SipPackageServiceImpl">
+        <property name="createdStatus" value="CREATED"/>
+        <property name="successStatus" value="SUCCESS"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.content.service.impl.SipFileServiceImpl"
+          class="it.ivscience.parer.content.service.impl.SipFileServiceImpl">
+        <property name="createdStatus" value="CREATED"/>
+        <property name="successStatus" value="SUCCESS"/>
+    </bean>
+
+</beans>

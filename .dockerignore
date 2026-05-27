@@ -1,0 +1,16 @@
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+
+# Build outputs
+/target
+**/target
+
+# Local/runtime artifacts
+*.log
+*.tmp
+.DS_Store
+.env
+

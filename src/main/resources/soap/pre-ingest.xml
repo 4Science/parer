@@ -1,0 +1,9 @@
+<ws:invioOggettoAsincrono xmlns:ws="http://ws.sacerasi.eng.it/">
+  <nmAmbiente>${nmAmbiente}</nmAmbiente>
+  <nmVersatore>${nmVersatore}</nmVersatore>
+  <cdKeyObject>${cdKeyObject}</cdKeyObject>
+  <nmTipoObject>${nmTipoObject}</nmTipoObject>
+  <flFileCifrato>${flFileCifrato}</flFileCifrato>
+  <flForzaWarning>${flForzaWarning}</flForzaWarning>
+  <flForzaAccettazione>${flForzaAccettazione}</flForzaAccettazione>
+</ws:invioOggettoAsincrono>

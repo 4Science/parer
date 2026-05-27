@@ -1,0 +1,308 @@
+# =============================================================================
+# parer (Java worker) — Bitbucket Pipelines
+#
+# Build dell'immagine Docker del worker ParER, push su ECR, deploy GitOps
+# (commit del nuovo tag su parer-values) per gli ambienti interni dev/staging.
+# Per i clienti (eu/us, test/prod) il deploy è SEMPRE manuale via custom pipeline.
+#
+# Trigger:
+#   - branches.main             → build + push + deploy auto su dev/staging
+#   - custom.build-and-push     → solo build + push (su qualsiasi branch)
+#   - custom.deploy-on-dev      → solo commit GitOps su parer-values/dev/*
+#   - custom.deploy-on-staging  → solo commit GitOps su parer-values/staging/*
+#   - custom.deploy-on-production → solo commit GitOps su parer-values eu/test, eu/prod,
+#                                   us/test, us/prod (tutti i 4 path customer insieme)
+#
+# In ogni custom deploy, l'operatore può lasciare IMAGE_TAG vuoto per usare il
+# default (tag dell'HEAD del branch selezionato) oppure inserire un tag esplicito.
+#
+# Workspace variables (Workspace Settings → Pipelines → Workspace variables):
+#   AWS_ACCESS_KEY_ID            (secured)  IAM user con ecr:Push sul repo `parer`
+#   AWS_SECRET_ACCESS_KEY        (secured)
+#   AWS_REGION                              es. eu-west-1
+#   BB_USER                                 author commit GitOps (es. "deliveryAccount4Science")
+#   BB_EMAIL                                author email
+#
+# Repository variables (Repository Settings → Pipelines → Repository variables):
+#   PARER_VALUES_REPO_TOKEN      (secured)  Repository Access Token su parer-values, scope repositories:write
+#   PARER_VALUES_REPO_NAME                  es. "bitbucket.org/4Science/parer-values.git"
+#
+# Deployments (Repository Settings → Deployments) — solo VALUES_DIRS, il nome
+# dell'env arriva auto come $BITBUCKET_DEPLOYMENT_ENVIRONMENT:
+#   dev          → VALUES_DIRS=dev
+#   staging      → VALUES_DIRS=staging
+#   production   → VALUES_DIRS="eu/test eu/prod us/test us/prod"
+#
+# Tag immagine:
+#   IMAGE_TAG = ${APP_VERSION}-${SHA8}
+#   - APP_VERSION  estratto dal <version> del pom.xml (rimuove -SNAPSHOT)
+#   - SHA8         primi 8 caratteri del commit
+#   - tag `latest` pushato in parallelo
+# =============================================================================
+
+definitions:
+
+  # --- Step riusabili -------------------------------------------------------
+  steps:
+
+    - step: &build-and-push
+        name: build-and-push
+        runs-on:
+          - self.hosted
+          - linux.arm64
+          - arm64.group
+        size: 2x
+        image: atlassian/default-image:4
+        services:
+          - docker
+        script:
+          # Tag immagine: <app-version>-<sha8>, dove app-version viene dal pom.xml.
+          # Cambiare il <version> nel pom (release reale) propaga al tag automaticamente.
+          - export APP_VERSION=$(grep -m1 -oE '<version>[^<]+' pom.xml | sed 's|<version>||;s|-SNAPSHOT||')
+          - export SHA8=${BITBUCKET_COMMIT:0:8}
+          - export IMAGE_TAG="${APP_VERSION}-${SHA8}"
+          - echo "Building parer:${IMAGE_TAG} (linux/arm64)"
+          - echo "IMAGE_TAG=${IMAGE_TAG}" > image.env
+
+          # Installa il plugin Docker Buildx (non incluso in atlassian/default-image:4)
+          - export BUILDX_ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+          - mkdir -p ~/.docker/cli-plugins
+          - curl -sSL "https://github.com/docker/buildx/releases/download/v0.23.0/buildx-v0.23.0.linux-${BUILDX_ARCH}" -o ~/.docker/cli-plugins/docker-buildx
+          - chmod +x ~/.docker/cli-plugins/docker-buildx
+
+          # Builder Buildx con driver container (necessario per --cache-from/to registry).
+          # Niente QEMU: il runner è arm64 e il pod gira solo su arm64
+          # (nodeSelector kubernetes.io/arch: arm64 nel chart parer).
+          - docker buildx create --name parer-builder --driver docker-container --bootstrap --use
+
+          # AWS CLI v2 (non incluso in atlassian/default-image:4)
+          - curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o awscliv2.zip
+          - unzip -q awscliv2.zip
+          - ./aws/install -b /usr/local/bin
+
+          # ECR registry derivato dalle credenziali pipeline.
+          - export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          - export ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+          # Login ECR
+          - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+          # Build + push manifest multi-arch.
+          # --provenance=false: ECR non supporta gli attestation manifest OCI.
+          # --cache-from/to: layer riusabili tra build (richiede ecr:BatchGetImage).
+          - |
+            docker buildx build \
+              --platform linux/arm64 \
+              -f Dockerfile \
+              -t ${ECR_REGISTRY}/parer:${IMAGE_TAG} \
+              -t ${ECR_REGISTRY}/parer:latest \
+              --cache-from type=registry,ref=${ECR_REGISTRY}/parer:cache \
+              --cache-to   type=registry,ref=${ECR_REGISTRY}/parer:cache,mode=max \
+              --provenance=false \
+              --push \
+              .
+        artifacts:
+          - image.env
+
+  # --- Script riusabili -----------------------------------------------------
+  # deploy-script aggiorna `worker.image.tag` nei file customer di parer-values
+  # corrispondenti al deployment env corrente ($VALUES_DIRS) e fa commit + push.
+  #
+  # Determinazione del tag (in ordine di precedenza):
+  #   1. file image.env (artifact del build-and-push step → branches.main)
+  #   2. variabile IMAGE_TAG settata dall'operatore (custom pipeline)
+  #   3. default: calcolato dal pom.xml + commit corrente (<pom-version>-<sha8>)
+  #
+  # In ogni caso il tag deve esistere in ECR — se no, fallisce con messaggio chiaro.
+  # -------------------------------------------------------------------------
+  scripts:
+    - &deploy-script
+      - apk add --no-cache bash yq aws-cli >/dev/null 2>&1
+
+      # ── 0. Determina VALUES_DIRS ───────────────────────────────────────
+      # Sorgenti, in ordine di precedenza:
+      #   a) variable DEPLOY_TARGET dell'operatore (override custom — non
+      #      esposta da nessun custom pipeline attuale, ma il case sotto la
+      #      onora se settata via variable Bitbucket o env)
+      #      - "all"       → eu/test eu/prod us/test us/prod
+      #      - "eu/test"   → solo eu/test
+      #      - "eu/prod"   → solo eu/prod
+      #      - "us/test"   → solo us/test
+      #      - "us/prod"   → solo us/prod
+      #   b) VALUES_DIRS dal deployment env (caso normale: branches.main e
+      #      tutti i custom deploy-on-* usano questa via)
+      - |
+        if [ -n "${DEPLOY_TARGET:-}" ]; then
+          case "${DEPLOY_TARGET}" in
+            all)
+              VALUES_DIRS="eu/test eu/prod us/test us/prod"
+              ;;
+            eu/test|eu/prod|us/test|us/prod)
+              VALUES_DIRS="${DEPLOY_TARGET}"
+              ;;
+            *)
+              echo "ERROR: DEPLOY_TARGET '${DEPLOY_TARGET}' non riconosciuto."
+              echo "       Valori ammessi: all | eu/test | eu/prod | us/test | us/prod"
+              exit 1
+              ;;
+          esac
+          echo "DEPLOY_TARGET=${DEPLOY_TARGET} → VALUES_DIRS=${VALUES_DIRS}"
+        fi
+
+      # ── 1. Determina IMAGE_TAG ─────────────────────────────────────────
+      - |
+        if [ -f image.env ]; then
+          . ./image.env
+        fi
+        if [ -z "${IMAGE_TAG:-}" ]; then
+          APP_VERSION=$(grep -m1 -oE '<version>[^<]+' pom.xml | sed 's|<version>||;s|-SNAPSHOT||')
+          SHA8=${BITBUCKET_COMMIT:0:8}
+          IMAGE_TAG="${APP_VERSION}-${SHA8}"
+          echo "IMAGE_TAG non specificato → default dal commit corrente: ${IMAGE_TAG}"
+        fi
+        echo "=== Deploy ${BITBUCKET_DEPLOYMENT_ENVIRONMENT} → ${IMAGE_TAG} (${VALUES_DIRS}) ==="
+
+      # ── 2. Verifica esistenza tag in ECR ────────────────────────────────
+      # Catturiamo stderr e distinguiamo "tag mancante" (ImageNotFoundException)
+      # da altri errori (AccessDenied, network, ecc.) per non confondere
+      # l'operatore con un messaggio fuorviante.
+      - |
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        ECR_OUT=$(aws ecr describe-images --repository-name parer --region "${AWS_REGION}" \
+                    --image-ids imageTag="${IMAGE_TAG}" 2>&1) && ECR_RC=$? || ECR_RC=$?
+        if [ "${ECR_RC}" -ne 0 ]; then
+          echo ""
+          if echo "${ECR_OUT}" | grep -q "ImageNotFoundException"; then
+            echo "ERROR: tag '${IMAGE_TAG}' non trovato in ECR ${ECR_REGISTRY}/parer."
+            echo ""
+            echo "Cosa controllare:"
+            echo "  1. La pipeline build-and-push è stata eseguita per questo commit?"
+            echo "  2. Il tag è digitato correttamente? (pattern <pom-version>-<sha8>)"
+            echo "  3. ECR account ${AWS_ACCOUNT_ID}, region ${AWS_REGION}?"
+          else
+            echo "ERROR: ecr:DescribeImages è fallito su ${ECR_REGISTRY}/parer per il tag '${IMAGE_TAG}'."
+            echo "       Output AWS CLI:"
+            echo "${ECR_OUT}" | sed 's/^/         /'
+            echo ""
+            echo "       Se è AccessDenied: l'IAM user pipeline non ha 'ecr:DescribeImages'."
+            echo "       Aggiungilo alla resource policy del repo 'parer' o all'inline policy"
+            echo "       dell'IAM user."
+          fi
+          echo ""
+          exit 1
+        fi
+        echo "Tag ${IMAGE_TAG} verificato in ECR (${ECR_REGISTRY}/parer)."
+
+      # ── 3. Clone parer-values e raccogli i file dell'env ────────────────
+      - git clone "https://x-token-auth:${PARER_VALUES_REPO_TOKEN}@${PARER_VALUES_REPO_NAME}" values-repo
+      - cd values-repo
+
+      - |
+        FILES=""
+        for dir in ${VALUES_DIRS}; do
+          if [ -d "${dir}" ]; then
+            FOUND=$(find "${dir}" -type f)
+            if [ -n "${FOUND}" ]; then
+              FILES="${FILES}
+        ${FOUND}"
+            fi
+          else
+            echo "Directory '${dir}' non esistente nel values repo — skip"
+          fi
+        done
+        FILES=$(printf '%s\n' "${FILES}" | sed '/^[[:space:]]*$/d')
+        if [ -z "${FILES}" ]; then
+          echo "Nessun file trovato in [${VALUES_DIRS}] — nulla da fare"
+          exit 0
+        fi
+        echo "File da aggiornare:"
+        printf '%s\n' "${FILES}"
+
+      # ── 4. Aggiorna worker.image.tag in ogni file ───────────────────────
+      - |
+        printf '%s\n' "${FILES}" | while IFS= read -r f; do
+          echo "  yq: ${f}"
+          yq -i ".worker.image.tag = \"${IMAGE_TAG}\"" "${f}"
+        done
+
+      # ── 5. Commit + push (no-op safe se nulla è cambiato) ──────────────
+      - git config user.email "${BB_EMAIL}"
+      - git config user.name  "${BB_USER}"
+      - git add -A
+      - |
+        if git diff --cached --quiet; then
+          echo "Nessuna modifica effettiva — tag già aggiornato, skip commit"
+          exit 0
+        fi
+        git commit -m "chore(${BITBUCKET_DEPLOYMENT_ENVIRONMENT}): deploy parer ${IMAGE_TAG}"
+        git push origin HEAD:main
+        echo "=== Deploy ${BITBUCKET_DEPLOYMENT_ENVIRONMENT} completato. ArgoCD sincronizzerà a breve. ==="
+
+# =============================================================================
+# Pipelines
+# =============================================================================
+pipelines:
+
+  branches:
+    main:
+      - step: *build-and-push
+
+      - step:
+          name: deploy-on-dev
+          deployment: dev
+          image: alpine/git:latest
+          script: *deploy-script
+
+      - step:
+          name: deploy-on-staging
+          deployment: staging
+          image: alpine/git:latest
+          script: *deploy-script
+
+  # ---------------------------------------------------------------------------
+  # Custom — trigger manuali dalla UI Bitbucket (Run pipeline → custom).
+  # ---------------------------------------------------------------------------
+  custom:
+
+    # Solo build + push (utile per validare un branch senza deployare).
+    build-and-push:
+      - step: *build-and-push
+
+    # Deploy SOLO commit su parer-values per gli ambienti customer
+    # (eu/test, eu/prod, us/test, us/prod). NON ribuilda l'immagine.
+    #
+    # Default tag: HEAD del branch selezionato all'avvio del custom (= pom-version-sha8).
+    # Override esplicito: compila il campo IMAGE_TAG nel form di avvio.
+    deploy-on-production:
+      - variables:
+          - name: IMAGE_TAG
+            default: ""
+            description: "OPZIONALE. Lascia vuoto per usare il default (= tag dell'HEAD del branch su cui lanci la pipeline, atteso pattern <pom-version>-<sha8>). Compila SOLO per promuovere un tag specifico, es. 0.0.1-abc12345."
+      - step:
+          name: deploy-on-production
+          deployment: production
+          image: alpine/git:latest
+          script: *deploy-script
+
+    deploy-on-staging:
+      - variables:
+          - name: IMAGE_TAG
+            default: ""
+            description: "OPZIONALE. Lascia vuoto per usare il default (= tag dell'HEAD del branch su cui lanci la pipeline, atteso pattern <pom-version>-<sha8>). Compila SOLO per promuovere un tag specifico, es. 0.0.1-abc12345."
+      - step:
+          name: deploy-on-staging
+          deployment: staging
+          image: alpine/git:latest
+          script: *deploy-script
+
+    deploy-on-dev:
+      - variables:
+          - name: IMAGE_TAG
+            default: ""
+            description: "OPZIONALE. Lascia vuoto per usare il default (= tag dell'HEAD del branch su cui lanci la pipeline, atteso pattern <pom-version>-<sha8>). Compila SOLO per promuovere un tag specifico, es. 0.0.1-abc12345."
+      - step:
+          name: deploy-on-dev
+          deployment: dev
+          image: alpine/git:latest
+          script: *deploy-script

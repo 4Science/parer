@@ -1,0 +1,32 @@
+publiccodeYmlVersion: 0.5.0
+name: Parer - Integrazione DSpace
+url: https://github.com/4Science/parer
+platforms:
+  - linux
+organisation:
+  uri: http://4science.com
+  name: 4Science
+developmentStatus: development
+softwareType: standalone/backend
+description:
+  it:
+    shortDescription: DSpace si integra con PARER per preservare archivi digitali,
+      garantendo interoperabilità e conformità agli standard di conservazione
+      digitale.
+    longDescription: DSpace si integra con PARER per gestire, preservare e
+      condividere in modo sicuro archivi digitali istituzionali, garantendo
+      interoperabilità e conformità agli standard nazionali
+    features:
+      - Pre-ingestione automatica
+      - Generazione automatica del pacchetto SIP
+      - Mappatura automatica dei metadati
+      - Tracciamento dello stato di deposito
+      - Validazione deposito
+legal:
+  license: BSD-3-Clause
+maintenance:
+  type: none
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - it

@@ -1,0 +1,6 @@
+<ws:aggiuntaAllegatiSync xmlns:ws="http://ws.sacer.parer.emr.it/">
+  <nmAmbiente>${nmAmbiente}</nmAmbiente>
+  <nmVersatore>${nmVersatore}</nmVersatore>
+  <cdKeyObjectUdPadre>${cdKeyObjectUdPadre}</cdKeyObjectUdPadre>
+  <xmlSip><![CDATA[${xmlSip}]]></xmlSip>
+</ws:aggiuntaAllegatiSync>

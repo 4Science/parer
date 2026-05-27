@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- ── FileClassifier (classifies files as master vs annotation by name/ext) ── -->
+
+    <bean id="it.ivscience.parer.worker.sip.builder.FileClassifier"
+          class="it.ivscience.parer.worker.sip.builder.FileClassifier">
+        <property name="masterSuffixes"       value="${parer.sip.file-classifier.master-suffixes}"/>
+        <property name="annotationSuffixes"   value="${parer.sip.file-classifier.annotation-suffixes}"/>
+        <property name="masterExtensions"     value="${parer.sip.file-classifier.master-extensions}"/>
+        <property name="annotationExtensions" value="${parer.sip.file-classifier.annotation-extensions}"/>
+    </bean>
+
+    <!-- ── ComponentBuilder (shared by Principal, Annotations, Count builders) ── -->
+
+    <bean id="it.ivscience.parer.worker.sip.builder.ComponentBuilder"
+          class="it.ivscience.parer.worker.sip.builder.ComponentBuilder">
+        <property name="fileClassifier"            ref="it.ivscience.parer.worker.sip.builder.FileClassifier"/>
+        <property name="tagComponente"             value="${parer.sip.componente.tag-componente}"/>
+        <property name="tagId"                     value="${parer.sip.componente.tag-id}"/>
+        <property name="tagOrdine"                 value="${parer.sip.componente.tag-ordine}"/>
+        <property name="tagTipoComponente"         value="${parer.sip.componente.tag-tipo-componente}"/>
+        <property name="tagTipoSupportoComponente" value="${parer.sip.componente.tag-tipo-supporto}"/>
+        <property name="tagNomeComponente"         value="${parer.sip.componente.tag-nome}"/>
+        <property name="tagFormatoFileVersato"     value="${parer.sip.componente.tag-formato}"/>
+        <property name="tagHashVersato"            value="${parer.sip.componente.tag-hash}"/>
+    </bean>
+
+    <!-- ── Section builders ───────────────────────────────────────────────── -->
+
+    <bean id="it.ivscience.parer.worker.sip.builder.SenderBuilder"
+          class="it.ivscience.parer.worker.sip.builder.SenderBuilder">
+        <property name="environment"  value="${parer.versatore.ambiente}"/>
+        <property name="institution"  value="${parer.versatore.ente}"/>
+        <property name="structure"    value="${parer.versatore.struttura}"/>
+        <property name="userId"       value="${parer.versatore.userid}"/>
+        <property name="tagVersatore" value="${parer.sip.sender.tag-versatore}"/>
+        <property name="tagAmbiente"  value="${parer.sip.sender.tag-ambiente}"/>
+        <property name="tagEnte"      value="${parer.sip.sender.tag-ente}"/>
+        <property name="tagStruttura" value="${parer.sip.sender.tag-struttura}"/>
+        <property name="tagUserId"    value="${parer.sip.sender.tag-user-id}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.KeyBuilder"
+          class="it.ivscience.parer.worker.sip.builder.KeyBuilder">
+        <property name="numberKey"       value="${parer.sip.key.number-key}"/>
+        <property name="yearKey"         value="${parer.sip.key.year-key}"/>
+        <property name="registryTypeKey" value="${parer.sip.key.registry-type-key}"/>
+        <property name="tagNumero"       value="${parer.sip.key.tag-numero}"/>
+        <property name="tagAnno"         value="${parer.sip.key.tag-anno}"/>
+        <property name="tagTipoRegistro" value="${parer.sip.key.tag-tipo-registro}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.UnitBuilder"
+          class="it.ivscience.parer.worker.sip.builder.UnitBuilder">
+        <property name="subjectKey" value="${parer.sip.unit.subject-key}"/>
+        <property name="dateKey"    value="${parer.sip.unit.date-key}"/>
+        <property name="tagOggetto" value="${parer.sip.unit.tag-oggetto}"/>
+        <property name="tagData"    value="${parer.sip.unit.tag-data}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.SpecificDataBuilder"
+          class="it.ivscience.parer.worker.sip.builder.SpecificDataBuilder">
+        <property name="collectionIdKey"          value="${parer.sip.specific.collection-id-key}"/>
+        <property name="collectionDescriptionKey" value="${parer.sip.specific.collection-description-key}"/>
+        <property name="dataProviderKey"          value="${parer.sip.specific.data-provider-key}"/>
+        <property name="tagCollezioneId"          value="${parer.sip.specific.tag-collezione-id}"/>
+        <property name="tagCollezioneDescrizione" value="${parer.sip.specific.tag-collezione-desc}"/>
+        <property name="tagDataProvider"          value="${parer.sip.specific.tag-data-provider}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.PrincipalDocumentBuilder"
+          class="it.ivscience.parer.worker.sip.builder.PrincipalDocumentBuilder">
+        <property name="componente"            ref="it.ivscience.parer.worker.sip.builder.ComponentBuilder"/>
+        <property name="tipoDocumento"         value="${parer.sip.principal.tipo-documento}"/>
+        <property name="coarKey"               value="${parer.sip.profilo-documento.coar-key}"/>
+        <property name="tipoStruttura"         value="${parer.sip.principal.tipo-struttura}"/>
+        <property name="tipoComponente"        value="${parer.sip.principal.tipo-componente}"/>
+        <property name="tipoSupporto"          value="${parer.sip.principal.tipo-supporto}"/>
+        <property name="tagIdDocumento"        value="${parer.sip.principal.tag-id-documento}"/>
+        <property name="tagTipoDocumento"      value="${parer.sip.principal.tag-tipo-documento}"/>
+        <property name="tagProfiloDocumento"   value="${parer.sip.profilo-documento.tag}"/>
+        <property name="tagDescrizione"        value="${parer.sip.profilo-documento.tag-descrizione}"/>
+        <property name="tagStrutturaOriginale" value="${parer.sip.principal.tag-struttura-originale}"/>
+        <property name="tagTipoStruttura"      value="${parer.sip.principal.tag-tipo-struttura}"/>
+        <property name="tagComponenti"         value="${parer.sip.principal.tag-componenti}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.AnnotationsBuilder"
+          class="it.ivscience.parer.worker.sip.builder.AnnotationsBuilder">
+        <property name="componente"            ref="it.ivscience.parer.worker.sip.builder.ComponentBuilder"/>
+        <property name="tipoDocumento"         value="${parer.sip.annotations.tipo-documento}"/>
+        <property name="tipoStruttura"         value="${parer.sip.annotations.tipo-struttura}"/>
+        <property name="tipoComponente"        value="${parer.sip.annotations.tipo-componente}"/>
+        <property name="tipoSupporto"          value="${parer.sip.annotations.tipo-supporto}"/>
+        <property name="tagAnnotazioni"        value="${parer.sip.annotations.tag-annotazioni}"/>
+        <property name="tagAnnotazione"        value="${parer.sip.annotations.tag-annotazione}"/>
+        <property name="tagIdDocumento"        value="${parer.sip.annotations.tag-id-documento}"/>
+        <property name="tagTipoDocumento"      value="${parer.sip.annotations.tag-tipo-documento}"/>
+        <property name="tagStrutturaOriginale" value="${parer.sip.annotations.tag-struttura-originale}"/>
+        <property name="tagTipoStruttura"      value="${parer.sip.annotations.tag-tipo-struttura}"/>
+        <property name="tagComponenti"         value="${parer.sip.annotations.tag-componenti}"/>
+    </bean>
+
+    <bean id="it.ivscience.parer.worker.sip.builder.CountAnnotationsBuilder"
+          class="it.ivscience.parer.worker.sip.builder.CountAnnotationsBuilder">
+        <property name="componente" ref="it.ivscience.parer.worker.sip.builder.ComponentBuilder"/>
+    </bean>
+
+    <!-- ── SipBuilder orchestrator ────────────────────────────────────────── -->
+
+    <bean id="it.ivscience.parer.worker.sip.SipBuilder"
+          class="it.ivscience.parer.worker.sip.SipBuilder">
+        <property name="templatePath" value="${parer.sip.template-path}"/>
+        <property name="sectionBuilders">
+            <list>
+                <ref bean="it.ivscience.parer.worker.sip.builder.SenderBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.KeyBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.UnitBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.SpecificDataBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.PrincipalDocumentBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.AnnotationsBuilder"/>
+                <ref bean="it.ivscience.parer.worker.sip.builder.CountAnnotationsBuilder"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- ── SipValidator ───────────────────────────────────────────────────── -->
+
+    <bean id="it.ivscience.parer.worker.sip.SipValidator"
+          class="it.ivscience.parer.worker.sip.SipValidator">
+        <property name="xsdPath" value="${parer.sip.xsd-path}"/>
+    </bean>
+
+</beans>

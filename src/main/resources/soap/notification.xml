@@ -1,0 +1,6 @@
+<ws:notificaAvvenutoTrasferimentoFile xmlns:ws="http://ws.sacerasi.eng.it/">
+  <nmAmbiente>${nmAmbiente}</nmAmbiente>
+  <nmVersatore>${nmVersatore}</nmVersatore>
+  <cdKeyObject>${cdKeyObject}</cdKeyObject>
+  <listaFileDepositati>${listaFileDepositati}</listaFileDepositati>
+</ws:notificaAvvenutoTrasferimentoFile>
